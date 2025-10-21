@@ -355,7 +355,9 @@ class ShiftNMF(nn.Module):
 
     # Get raw model parameters (optionally including tau)
     def get_model_params(self):
-        if self.integer_shift or self.non_integer_shift:
+        if self.stretch:
+            return [self.A_raw.detach(), self.S_raw.detach(), self.tau.detach(), self.a_idx.detach()]
+        elif self.integer_shift or self.non_integer_shift:
             return [self.A_raw.detach(), self.S_raw.detach(), self.tau.detach()]
         else:
             return [self.A_raw.detach(), self.S_raw.detach()]
@@ -368,7 +370,7 @@ class ShiftNMF(nn.Module):
             A = self.A_raw
         S = self.non_negative_transform(self.S_raw).detach()
 
-        if (self.integer_shift or self.non_integer_shift) and not self.stretch:
+        if (self.integer_shift or self.non_integer_shift):
             A_max = torch.argmax(A, dim=0)  # (K,)
             tau_max = self.tau.detach()[A_max, torch.arange(self.K)]  # (K,)
             S_f_shifted =  torch.fft.rfft(S, dim=1) * torch.exp(-1j*2*math.pi*self.f[:,:,0] * tau_max.unsqueeze(1))  # (K, N_fft)
@@ -376,18 +378,8 @@ class ShiftNMF(nn.Module):
             tau = self.tau.detach() - tau_max.unsqueeze(0) - self.N  # (P, K)
             # return A.numpy(), S_shifted.numpy()[:,:self.N_init], tau.numpy()
             return A.numpy(),S_shifted.numpy(),self.tau.detach().numpy()
-        elif self.stretch:
-            A_max = torch.argmax(A, dim=0)  # (K,)
-            X_candidate = self.candidate_S_stretch(self.X)
-            for k in range(self.K):
-                a_idx = X_candidate
-                X_acutal_stretched
-
-
-            return A.numpy(),S_shifted.numpy(),self.tau.detach().numpy()
-
         else:
-            return A.numpy(), S.numpy()[:,:self.N_init]
+            return A.numpy(), S.numpy()
         
         
     # Set model parameters (raw, not transformed)
