@@ -377,7 +377,10 @@ class ShiftNMF(nn.Module):
             S_shifted = torch.fft.irfft(S_f_shifted, dim=1, n=self.N)  # (K, N)
             tau = self.tau.detach() - tau_max.unsqueeze(0) - self.N  # (P, K)
             # return A.numpy(), S_shifted.numpy()[:,:self.N_init], tau.numpy()
-            return A.numpy(),S_shifted.numpy(),self.tau.detach().numpy()
+            if self.stretch:
+                return A.numpy(),S_shifted.numpy(),tau, self.a_idx.numpy()    
+            else:
+                return A.numpy(),S_shifted.numpy(),tau
         else:
             return A.numpy(), S.numpy()
         
